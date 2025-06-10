@@ -1,4 +1,7 @@
+// Program.cs
 using WebsiteMonitorService.Extensions;
+using Quartz;
+using Quartz.Impl.Matchers;
 
 namespace WebsiteMonitorService
 {
@@ -81,6 +84,30 @@ namespace WebsiteMonitorService
 			if( string.IsNullOrEmpty( smtpServer ) )
 			{
 				logger.LogError( "Email configuration is missing! Please update appsettings.json" );
+			}
+
+			// Log Quartz scheduler info
+			var schedulerFactory = host.Services.GetRequiredService<ISchedulerFactory>();
+			var scheduler = await schedulerFactory.GetScheduler();
+
+			logger.LogInformation( "Quartz Scheduler Name: {SchedulerName}", scheduler.SchedulerName );
+			logger.LogInformation( "Quartz Scheduler Started: {IsStarted}", scheduler.IsStarted );
+
+			// List all jobs and triggers
+			var jobKeys = await scheduler.GetJobKeys( GroupMatcher<JobKey>.AnyGroup() );
+			logger.LogInformation( "Registered Jobs: {JobCount}", jobKeys.Count );
+
+			foreach( var jobKey in jobKeys )
+			{
+				var triggers = await scheduler.GetTriggersOfJob( jobKey );
+				logger.LogInformation( "Job: {JobKey}, Triggers: {TriggerCount}", jobKey, triggers.Count );
+
+				foreach( var trigger in triggers )
+				{
+					var nextFireTime = trigger.GetNextFireTimeUtc();
+					logger.LogInformation( "  Trigger: {TriggerKey}, Next Fire: {NextFire}",
+						trigger.Key, nextFireTime?.ToString( "yyyy-MM-dd HH:mm:ss UTC" ) ?? "NEVER" );
+				}
 			}
 
 			try

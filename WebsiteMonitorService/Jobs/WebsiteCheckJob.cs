@@ -51,18 +51,18 @@ namespace WebsiteMonitorService.Jobs
 
 				if( hasNewText )
 				{
-					_logger.LogInformation( "✅ NEW TEXT DETECTED! Sending notification..." );
+					_logger.LogInformation( "NEW TEXT DETECTED! Sending notification..." );
 
 					var subject = $"Website Change Detected - {GetDomainFromUrl( websiteUrl )}";
 					var body = CreateNotificationBody( websiteUrl, newTextFound );
 
 					await _emailService.SendNotificationAsync( subject, body, newTextFound );
 
-					_logger.LogInformation( "📧 Notification email sent successfully" );
+					_logger.LogInformation( "Notification email sent successfully" );
 				}
 				else
 				{
-					_logger.LogInformation( "ℹ️ No new text detected on the website" );
+					_logger.LogInformation( "No new text detected on the website" );
 
 					// Log some details about what was checked
 					if( !string.IsNullOrEmpty( newTextFound ) )
@@ -77,12 +77,12 @@ namespace WebsiteMonitorService.Jobs
 			}
 			catch( HttpRequestException ex )
 			{
-				_logger.LogError( ex, "❌ Network error while checking website. Check your internet connection or website URL." );
+				_logger.LogError( ex, "Network error while checking website. Check your internet connection or website URL." );
 				await SendErrorNotification( $"Network error: {ex.Message}" );
 			}
 			catch( Exception ex )
 			{
-				_logger.LogError( ex, "❌ Unexpected error during website check" );
+				_logger.LogError( ex, "Unexpected error during website check" );
 				await SendErrorNotification( $"Unexpected error: {ex.Message}" );
 			}
 		}
@@ -112,11 +112,11 @@ namespace WebsiteMonitorService.Jobs
 				var subject = "Website Monitor - Error Alert";
 				var body = $@"An error occurred while monitoring the website.
 
-Website: {websiteUrl}
-Error: {errorMessage}
-Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
+				Website: {websiteUrl}
+				Error: {errorMessage}
+				Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
 
-Please check the service logs for more details.";
+				Please check the service logs for more details.";
 
 				await _emailService.SendNotificationAsync( subject, body );
 				_logger.LogInformation( "Error notification sent" );
